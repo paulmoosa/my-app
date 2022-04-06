@@ -1,36 +1,66 @@
-node{
-   stage('SCM Checkout'){
-     git 'https://github.com/paulmoosa/my-app.git'
-   }
-   stage('Compile-Package'){
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>in.javahome</groupId>
+	<artifactId>myweb</artifactId>
+	<packaging>war</packaging>
+	<version>0.0.5</version>
+	<name>my-app</name>
+	
+	<!-- Demo on Github Webhooks-->
 
-      def mvnHome =  tool name: 'maven3', type: 'maven'   
-      sh "${mvnHome}/bin/mvn clean package"
-	  sh 'mv target/myweb*.war target/newapp.war'
-   }
-   stage('SonarQube Analysis') {
-	        def mvnHome =  tool name: 'maven3', type: 'maven'
-	        withSonarQubeEnv('sonar') { 
-	          sh "${mvnHome}/bin/mvn sonar:sonar"
-	        }
-	    }
-   stage('Build Docker Imager'){
-   sh 'docker build -t paulmoosa/myweb:0.0.2 .'
-   }
-   stage('Docker Image Push'){
-   withCredentials([string(credentialsId: 'dockerPass', variable: 'dockerPassword')]) {
-   sh "docker login -u paulmoosa -p ${dockerPassword}"
-    }
-   sh 'docker push paulmoosa/myweb:0.0.2'
-   }
-   stage('Remove Previous Container'){
-	try{
-		sh 'docker rm -f tomcattest'
-	}catch(error){
-		//  do nothing if there is an exception
-	}
-   stage('Docker deployment'){
-   sh 'docker run -d -p 8090:8080 --name tomcattest paulmoosa/myweb:0.0.2' 
-   }
-}
-}
+	<url>http://maven.apache.org</url>
+
+	<dependencies>
+		<dependency>
+		    <groupId>org.apache.poi</groupId>
+		    <artifactId>poi</artifactId>
+		    <version>3.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<!-- <scope>provided</scope> -->
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+	
+	</dependencies>
+	<distributionManagement>
+		 <snapshotRepository>
+		    <id>nexus</id>
+		    <url>http://13.233.125.37:8081/repository/maven-snapshots/</url>
+		 </snapshotRepository>
+		
+		<repository>
+		    <id>nexus</id>
+		    <url>http://13.233.125.37:8081/repository/maven-releases/</url>
+		</repository>
+  	</distributionManagement>
+	
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.6.1</version>
+            <configuration>
+                <source>1.7</source>
+                <target>1.7</target>
+            </configuration>
+        </plugin>
+	<plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.19</version>
+        </plugin>
+    </plugins>
+</build>
+	
+</project>
